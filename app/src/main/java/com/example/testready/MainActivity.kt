@@ -37,6 +37,8 @@ fun MainScreen(modifier: Modifier = Modifier) {
     val showAddForm = remember { mutableStateOf(false) }
     val environmentName = remember { mutableStateOf("") }
     val baseUrl = remember { mutableStateOf("") }
+    val savedEnvironmentName = remember { mutableStateOf("SauceDemo QA")}
+    val savedBaseUrl = remember { mutableStateOf("https://www.saucedemo.com")}
 
     Column(
         modifier = modifier.padding(20.dp)
@@ -46,8 +48,8 @@ fun MainScreen(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(20.dp))
             Text("Test Environments")
             Spacer(modifier = Modifier.height(20.dp))
-            Text("SauceDemo QA")
-            Text("https://www.saucedemo.com")
+            Text(savedEnvironmentName.value)
+            Text(savedBaseUrl.value)
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = {
@@ -78,7 +80,11 @@ fun MainScreen(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
-                onClick = { }
+                onClick = {
+                    savedEnvironmentName.value = environmentName.value
+                    savedBaseUrl.value = baseUrl.value
+                    showAddForm.value = false
+                }
             ) {
                 Text("Save")
             }
