@@ -19,6 +19,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateListOf
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +39,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
     val showAddForm = remember { mutableStateOf(false) }
     val environmentName = remember { mutableStateOf("") }
     val baseUrl = remember { mutableStateOf("") }
+    val selectedEnvironmentIndex = remember { mutableStateOf(-1) }
     val environmentNames = remember {
         mutableStateListOf("SauceDemo QA")
     }
@@ -48,14 +50,21 @@ fun MainScreen(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.padding(20.dp)
     ) {
-        if (showAddForm.value == false) {
+        if (showAddForm.value == false && selectedEnvironmentIndex.value == -1) {
             Text("TestReady")
             Spacer(modifier = Modifier.height(20.dp))
             Text("Test Environments")
             Spacer(modifier = Modifier.height(20.dp))
-            for (i in environmentNames.indices){
+            for (i in environmentNames.indices) {
                 Text(environmentNames[i])
                 Text(environmentUrls[i])
+                Button(
+                    onClick = {
+                        selectedEnvironmentIndex.value = i
+                    }
+                ) {
+                    Text("Open")
+                }
                 Spacer(modifier = Modifier.height(10.dp))
             }
             Spacer(modifier = Modifier.height(20.dp))
@@ -64,6 +73,23 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     showAddForm.value = true
                 }) {
                 Text("Add Environment")
+            }
+        } else if (selectedEnvironmentIndex.value != -1) {
+
+            Text("TestReady")
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(environmentNames[selectedEnvironmentIndex.value])
+            Text(environmentUrls[selectedEnvironmentIndex.value])
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Button(
+                onClick = {
+                    selectedEnvironmentIndex.value = -1
+                }
+            ) {
+                Text("Back")
             }
         } else {
             Text("Add Environment")
@@ -107,12 +133,13 @@ fun MainScreen(modifier: Modifier = Modifier) {
 
             }
         }
-        }
     }
-    @Preview(showBackground = true)
-    @Composable
-    fun TestReadyPreview() {
-        TestReadyTheme {
-            MainScreen()
-        }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TestReadyPreview() {
+    TestReadyTheme {
+        MainScreen()
     }
+}
