@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateListOf
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,8 +38,12 @@ fun MainScreen(modifier: Modifier = Modifier) {
     val showAddForm = remember { mutableStateOf(false) }
     val environmentName = remember { mutableStateOf("") }
     val baseUrl = remember { mutableStateOf("") }
-    val savedEnvironmentName = remember { mutableStateOf("SauceDemo QA")}
-    val savedBaseUrl = remember { mutableStateOf("https://www.saucedemo.com")}
+    val environmentNames = remember {
+        mutableStateListOf("SauceDemo QA")
+    }
+    val environmentUrls = remember {
+        mutableStateListOf("https://www.saucedemo.com")
+    }
 
     Column(
         modifier = modifier.padding(20.dp)
@@ -48,8 +53,11 @@ fun MainScreen(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(20.dp))
             Text("Test Environments")
             Spacer(modifier = Modifier.height(20.dp))
-            Text(savedEnvironmentName.value)
-            Text(savedBaseUrl.value)
+            for (i in environmentNames.indices){
+                Text(environmentNames[i])
+                Text(environmentUrls[i])
+                Spacer(modifier = Modifier.height(10.dp))
+            }
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = {
@@ -81,8 +89,10 @@ fun MainScreen(modifier: Modifier = Modifier) {
 
             Button(
                 onClick = {
-                    savedEnvironmentName.value = environmentName.value
-                    savedBaseUrl.value = baseUrl.value
+                    environmentNames.add(environmentName.value)
+                    environmentUrls.add(baseUrl.value)
+                    environmentName.value = ""
+                    baseUrl.value = ""
                     showAddForm.value = false
                 }
             ) {
