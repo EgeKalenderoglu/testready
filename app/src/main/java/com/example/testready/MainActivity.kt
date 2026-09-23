@@ -63,6 +63,10 @@ fun MainScreen(modifier: Modifier = Modifier) {
         mutableStateListOf<Int>()
     }
 
+    val checkResults = remember {
+        mutableStateListOf<String>()
+    }
+
     Column(
         modifier = modifier.padding(20.dp)
     ) {
@@ -105,6 +109,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 if (checkEnvironmentIndexes[i] == selectedEnvironmentIndex.value) {
                     Text(checkNames[i])
                     Text(checkTypes[i])
+                    Text("Status: ${checkResults[i]}")
                     Spacer(modifier = Modifier.height(10.dp))
                 }
             }
@@ -145,6 +150,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     checkNames.add(checkName.value)
                     checkTypes.add(checkType.value)
                     checkEnvironmentIndexes.add(selectedEnvironmentIndex.value)
+                    checkResults.add("Not Run")
 
                     checkName.value = ""
                     checkType.value = ""
