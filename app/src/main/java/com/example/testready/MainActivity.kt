@@ -50,6 +50,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
     val showAddCheckForm = remember { mutableStateOf(false) }
     val checkName = remember { mutableStateOf("") }
     val checkType = remember { mutableStateOf("") }
+    val checkUrl = remember { mutableStateOf("")}
 
     val checkNames = remember {
         mutableStateListOf<String>()
@@ -64,6 +65,10 @@ fun MainScreen(modifier: Modifier = Modifier) {
     }
 
     val checkResults = remember {
+        mutableStateListOf<String>()
+    }
+
+    val checkUrls = remember {
         mutableStateListOf<String>()
     }
 
@@ -131,6 +136,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 if (checkEnvironmentIndexes[i] == selectedEnvironmentIndex.value) {
                     Text(checkNames[i])
                     Text(checkTypes[i])
+                    Text(checkUrls[i])
                     Text("Status: ${checkResults[i]}")
                     Spacer(modifier = Modifier.height(10.dp))
                 }
@@ -177,17 +183,30 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     checkType.value = it
                 })
 
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text("Check URL")
+
+            OutlinedTextField(
+                value = checkUrl.value,
+                onValueChange = {
+                    checkUrl.value = it
+                }
+            )
+
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
                 onClick = {
                     checkNames.add(checkName.value)
                     checkTypes.add(checkType.value)
+                    checkUrls.add(checkUrl.value)
                     checkEnvironmentIndexes.add(selectedEnvironmentIndex.value)
                     checkResults.add("Not Run")
 
                     checkName.value = ""
                     checkType.value = ""
+                    checkUrl.value = ""
                     showAddCheckForm.value = false
                 }) {
                 Text("Save Check")
