@@ -100,6 +100,28 @@ fun MainScreen(modifier: Modifier = Modifier) {
 
             Text(environmentNames[selectedEnvironmentIndex.value])
             Text(environmentUrls[selectedEnvironmentIndex.value])
+            var hasChecks = false
+            var allPassed = true
+
+            for (i in checkNames.indices) {
+                if (checkEnvironmentIndexes[i] == selectedEnvironmentIndex.value) {
+                    hasChecks = true
+
+                    if (checkResults[i] != "Passed"){
+                        allPassed = false
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            if (hasChecks == false){
+                Text("Overall Status: No Checks")
+            } else if (allPassed){
+                Text("Overall Status: Ready to Test")
+            } else {
+                Text("Overall Status: Not Ready to Test")
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
             Text("Checks")
@@ -112,6 +134,18 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     Text("Status: ${checkResults[i]}")
                     Spacer(modifier = Modifier.height(10.dp))
                 }
+            }
+
+            Button(
+                onClick = {
+                    for (i in checkNames.indices){
+                        if (checkEnvironmentIndexes[i] == selectedEnvironmentIndex.value){
+                            checkResults[i] = "Passed"
+                        }
+                    }
+                }
+            ) {
+                Text("Run Preflight")
             }
 
             Button(
