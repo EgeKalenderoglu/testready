@@ -40,11 +40,27 @@ fun MainScreen(modifier: Modifier = Modifier) {
     val environmentName = remember { mutableStateOf("") }
     val baseUrl = remember { mutableStateOf("") }
     val selectedEnvironmentIndex = remember { mutableStateOf(-1) }
+
     val environmentNames = remember {
         mutableStateListOf("SauceDemo QA")
     }
     val environmentUrls = remember {
         mutableStateListOf("https://www.saucedemo.com")
+    }
+    val showAddCheckForm = remember { mutableStateOf(false) }
+    val checkName = remember { mutableStateOf("") }
+    val checkType = remember { mutableStateOf("") }
+
+    val checkNames = remember {
+        mutableStateListOf<String>()
+    }
+
+    val checkTypes = remember {
+        mutableStateListOf<String>()
+    }
+
+    val checkEnvironmentIndexes = remember {
+        mutableStateListOf<Int>()
     }
 
     Column(
@@ -61,8 +77,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 Button(
                     onClick = {
                         selectedEnvironmentIndex.value = i
-                    }
-                ) {
+                    }) {
                     Text("Open")
                 }
                 Spacer(modifier = Modifier.height(10.dp))
@@ -74,7 +89,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 }) {
                 Text("Add Environment")
             }
-        } else if (selectedEnvironmentIndex.value != -1) {
+        } else if (selectedEnvironmentIndex.value != -1 && showAddCheckForm.value == false) {
 
             Text("TestReady")
             Spacer(modifier = Modifier.height(20.dp))
@@ -83,13 +98,66 @@ fun MainScreen(modifier: Modifier = Modifier) {
             Text(environmentUrls[selectedEnvironmentIndex.value])
 
             Spacer(modifier = Modifier.height(20.dp))
+            Text("Checks")
+            Spacer(modifier = Modifier.height(10.dp))
+
+            for (i in checkNames.indices) {
+                if (checkEnvironmentIndexes[i] == selectedEnvironmentIndex.value) {
+                    Text(checkNames[i])
+                    Text(checkTypes[i])
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+            }
+
+            Button(
+                onClick = {
+                    showAddCheckForm.value = true
+                }) {
+                Text("Add Check")
+            }
+
 
             Button(
                 onClick = {
                     selectedEnvironmentIndex.value = -1
-                }
-            ) {
+                }) {
                 Text("Back")
+            }
+        } else if (showAddCheckForm.value) {
+            Text("Add Check")
+            Spacer(modifier = Modifier.height(20.dp))
+            Text("Check Name")
+            OutlinedTextField(
+                value = checkName.value, onValueChange = {
+                    checkName.value = it
+                })
+            Spacer(modifier = Modifier.height(10.dp))
+            Text("Check Type")
+            OutlinedTextField(
+                value = checkType.value, onValueChange = {
+                    checkType.value = it
+                })
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Button(
+                onClick = {
+                    checkNames.add(checkName.value)
+                    checkTypes.add(checkType.value)
+                    checkEnvironmentIndexes.add(selectedEnvironmentIndex.value)
+
+                    checkName.value = ""
+                    checkType.value = ""
+                    showAddCheckForm.value = false
+                }) {
+                Text("Save Check")
+            }
+
+            Button(
+                onClick = {
+                    showAddCheckForm.value = false
+                }) {
+                Text("Cancel")
             }
         } else {
             Text("Add Environment")
@@ -97,20 +165,16 @@ fun MainScreen(modifier: Modifier = Modifier) {
             Text("Environment Name")
 
             OutlinedTextField(
-                value = environmentName.value,
-                onValueChange = {
+                value = environmentName.value, onValueChange = {
                     environmentName.value = it
-                }
-            )
+                })
             Spacer(modifier = Modifier.height(10.dp))
             Text("Base URL")
 
             OutlinedTextField(
-                value = baseUrl.value,
-                onValueChange = {
+                value = baseUrl.value, onValueChange = {
                     baseUrl.value = it
-                }
-            )
+                })
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
@@ -120,15 +184,13 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     environmentName.value = ""
                     baseUrl.value = ""
                     showAddForm.value = false
-                }
-            ) {
+                }) {
                 Text("Save")
             }
             Button(
                 onClick = {
                     showAddForm.value = false
-                }
-            ) {
+                }) {
                 Text("Cancel")
 
             }
