@@ -76,6 +76,13 @@ fun MainScreen(modifier: Modifier = Modifier) {
         mutableStateListOf<String>()
     }
 
+    val historyEnvironmentIndexes = remember {
+        mutableStateListOf<Int>()
+    }
+
+    val historyResults = remember {
+        mutableStateListOf<String>()
+    }
     Column(
         modifier = modifier.padding(20.dp)
     ) {
@@ -150,24 +157,53 @@ fun MainScreen(modifier: Modifier = Modifier) {
             }
             Button(
                 onClick = {
+                    var foundCheck = false
+                    var runPassed = true
                     for (i in checkNames.indices) {
                         if (checkEnvironmentIndexes[i] == selectedEnvironmentIndex.value) {
 
-                            if (checkUrls[i].startsWith("http://") ||
-                                checkUrls[i].startsWith("https://")
-                            ) {
+                            foundCheck = true
+
+                            if (checkUrls[i].startsWith("http://") || checkUrls[i].startsWith("https://")) {
                                 checkResults[i] = "Passed"
                                 checkReasons[i] = ""
                             } else {
                                 checkResults[i] = "Failed"
                                 checkReasons[i] = "Invalid URL"
+                                runPassed = false
                             }
                         }
                     }
-                }
-            ) {
+                    if (foundCheck) {
+                        historyEnvironmentIndexes.add(selectedEnvironmentIndex.value)
+
+                        if (runPassed) {
+                            historyResults.add("Ready to Test")
+                        } else {
+                            historyResults.add("Not Ready to Test")
+                        }
+                    }
+                }) {
                 Text("Run Preflight")
             }
+
+            Spacer(modifier = Modifier.height(20.dp))
+            Text("Preflight History")
+            Spacer(modifier = Modifier.height(10.dp))
+
+            var foundHistory = false
+
+            for (i in historyResults.indices) {
+                if (historyEnvironmentIndexes[i] == selectedEnvironmentIndex.value) {
+                    foundHistory = true
+                    Text(historyResults[i])
+                    Spacer(modifier = Modifier.height(5.dp))
+                }
+            }
+            if (foundHistory == false) {
+                Text("No previous runs")
+            }
+            Spacer(modifier = Modifier.height(20.dp))
 
             Button(
                 onClick = {
@@ -203,11 +239,9 @@ fun MainScreen(modifier: Modifier = Modifier) {
             Text("Check URL")
 
             OutlinedTextField(
-                value = checkUrl.value,
-                onValueChange = {
+                value = checkUrl.value, onValueChange = {
                     checkUrl.value = it
-                }
-            )
+                })
 
             Spacer(modifier = Modifier.height(20.dp))
 
