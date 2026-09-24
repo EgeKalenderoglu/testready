@@ -163,11 +163,29 @@ fun MainScreen(modifier: Modifier = Modifier) {
         reasons
     }
     val historyEnvironmentIndexes = remember {
-        mutableStateListOf<Int>()
+        val indexes = mutableStateListOf<Int>()
+        val count = sharedPreferences.getInt("history_count", 0)
+
+        for (i in 0 until count) {
+            indexes.add(
+                sharedPreferences.getInt("history_environment_$i", 0)
+            )
+        }
+
+        indexes
     }
 
     val historyResults = remember {
-        mutableStateListOf<String>()
+        val results = mutableStateListOf<String>()
+        val count = sharedPreferences.getInt("history_count", 0)
+
+        for (i in 0 until count) {
+            results.add(
+                sharedPreferences.getString("history_result_$i", "") ?: ""
+            )
+        }
+
+        results
     }
     Column(
         modifier = modifier.padding(20.dp)
@@ -340,6 +358,20 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     for (i in checkNames.indices) {
                         editor.putString("check_result_$i", checkResults[i])
                         editor.putString("check_reason_$i", checkReasons[i])
+                    }
+
+                    editor.putInt("history_count", historyResults.size)
+
+                    for (i in historyResults.indices) {
+                        editor.putInt(
+                            "history_environment_$i",
+                            historyEnvironmentIndexes[i]
+                        )
+
+                        editor.putString(
+                            "history_result_$i",
+                            historyResults[i]
+                        )
                     }
 
                     editor.apply()
