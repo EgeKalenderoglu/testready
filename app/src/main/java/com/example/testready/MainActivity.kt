@@ -19,7 +19,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateListOf
-
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,16 +37,48 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
 
+    val context = LocalContext.current
+
+    val sharedPreferences = remember {
+        context.getSharedPreferences("testready_data", Context.MODE_PRIVATE)
+    }
     val showAddForm = remember { mutableStateOf(false) }
     val environmentName = remember { mutableStateOf("") }
     val baseUrl = remember { mutableStateOf("") }
     val selectedEnvironmentIndex = remember { mutableStateOf(-1) }
 
     val environmentNames = remember {
-        mutableStateListOf("SauceDemo QA")
+        val names = mutableStateListOf<String>()
+        val count = sharedPreferences.getInt("environment_count", 0)
+
+        if (count == 0) {
+            names.add("SauceDemo QA")
+        } else {
+            for (i in 0 until count) {
+                names.add(
+                    sharedPreferences.getString("environment_name_$i", "") ?: ""
+                )
+            }
+        }
+
+        names
     }
+
     val environmentUrls = remember {
-        mutableStateListOf("https://www.saucedemo.com")
+        val urls = mutableStateListOf<String>()
+        val count = sharedPreferences.getInt("environment_count", 0)
+
+        if (count == 0) {
+            urls.add("https://www.saucedemo.com")
+        } else {
+            for (i in 0 until count) {
+                urls.add(
+                    sharedPreferences.getString("environment_url_$i", "") ?: ""
+                )
+            }
+        }
+
+        urls
     }
     val showAddCheckForm = remember { mutableStateOf(false) }
     val checkName = remember { mutableStateOf("") }
@@ -53,29 +86,82 @@ fun MainScreen(modifier: Modifier = Modifier) {
     val checkUrl = remember { mutableStateOf("") }
 
     val checkNames = remember {
-        mutableStateListOf<String>()
+        val names = mutableStateListOf<String>()
+        val count = sharedPreferences.getInt("check_count", 0)
+
+        for (i in 0 until count) {
+            names.add(
+                sharedPreferences.getString("check_name_$i", "") ?: ""
+            )
+        }
+
+        names
     }
 
     val checkTypes = remember {
-        mutableStateListOf<String>()
+        val types = mutableStateListOf<String>()
+        val count = sharedPreferences.getInt("check_count", 0)
+
+        for (i in 0 until count) {
+            types.add(
+                sharedPreferences.getString("check_type_$i", "") ?: ""
+            )
+        }
+
+        types
     }
 
     val checkEnvironmentIndexes = remember {
-        mutableStateListOf<Int>()
+        val indexes = mutableStateListOf<Int>()
+        val count = sharedPreferences.getInt("check_count", 0)
+
+        for (i in 0 until count) {
+            indexes.add(
+                sharedPreferences.getInt("check_environment_$i", 0)
+            )
+        }
+
+        indexes
     }
 
     val checkResults = remember {
-        mutableStateListOf<String>()
+        val results = mutableStateListOf<String>()
+        val count = sharedPreferences.getInt("check_count", 0)
+
+        for (i in 0 until count) {
+            results.add(
+                sharedPreferences.getString("check_result_$i", "Not Run") ?: "Not Run"
+            )
+        }
+
+        results
     }
 
     val checkUrls = remember {
-        mutableStateListOf<String>()
+        val urls = mutableStateListOf<String>()
+        val count = sharedPreferences.getInt("check_count", 0)
+
+        for (i in 0 until count) {
+            urls.add(
+                sharedPreferences.getString("check_url_$i", "") ?: ""
+            )
+        }
+
+        urls
     }
 
     val checkReasons = remember {
-        mutableStateListOf<String>()
-    }
+        val reasons = mutableStateListOf<String>()
+        val count = sharedPreferences.getInt("check_count", 0)
 
+        for (i in 0 until count) {
+            reasons.add(
+                sharedPreferences.getString("check_reason_$i", "") ?: ""
+            )
+        }
+
+        reasons
+    }
     val historyEnvironmentIndexes = remember {
         mutableStateListOf<Int>()
     }
@@ -94,12 +180,78 @@ fun MainScreen(modifier: Modifier = Modifier) {
             for (i in environmentNames.indices) {
                 Text(environmentNames[i])
                 Text(environmentUrls[i])
+
                 Button(
                     onClick = {
                         selectedEnvironmentIndex.value = i
-                    }) {
+                    }
+                ) {
                     Text("Open")
                 }
+
+                Button(
+                    onClick = {
+
+                        for (j in checkEnvironmentIndexes.lastIndex downTo 0) {
+                            if (checkEnvironmentIndexes[j] == i) {
+                                checkNames.removeAt(j)
+                                checkTypes.removeAt(j)
+                                checkUrls.removeAt(j)
+                                checkResults.removeAt(j)
+                                checkReasons.removeAt(j)
+                                checkEnvironmentIndexes.removeAt(j)
+                            }
+                        }
+
+                        for (j in checkEnvironmentIndexes.indices) {
+                            if (checkEnvironmentIndexes[j] > i) {
+                                checkEnvironmentIndexes[j] =
+                                    checkEnvironmentIndexes[j] - 1
+                            }
+                        }
+
+                        for (j in historyEnvironmentIndexes.lastIndex downTo 0) {
+                            if (historyEnvironmentIndexes[j] == i) {
+                                historyEnvironmentIndexes.removeAt(j)
+                                historyResults.removeAt(j)
+                            }
+                        }
+
+                        for (j in historyEnvironmentIndexes.indices) {
+                            if (historyEnvironmentIndexes[j] > i) {
+                                historyEnvironmentIndexes[j] =
+                                    historyEnvironmentIndexes[j] - 1
+                            }
+                        }
+
+                        environmentNames.removeAt(i)
+                        environmentUrls.removeAt(i)
+
+                        val editor = sharedPreferences.edit()
+
+                        editor.putInt(
+                            "environment_count",
+                            environmentNames.size
+                        )
+
+                        for (j in environmentNames.indices) {
+                            editor.putString(
+                                "environment_name_$j",
+                                environmentNames[j]
+                            )
+
+                            editor.putString(
+                                "environment_url_$j",
+                                environmentUrls[j]
+                            )
+                        }
+
+                        editor.apply()
+                    }
+                ) {
+                    Text("Delete")
+                }
+
                 Spacer(modifier = Modifier.height(10.dp))
             }
             Spacer(modifier = Modifier.height(20.dp))
@@ -183,6 +335,14 @@ fun MainScreen(modifier: Modifier = Modifier) {
                             historyResults.add("Not Ready to Test")
                         }
                     }
+                    val editor = sharedPreferences.edit()
+
+                    for (i in checkNames.indices) {
+                        editor.putString("check_result_$i", checkResults[i])
+                        editor.putString("check_reason_$i", checkReasons[i])
+                    }
+
+                    editor.apply()
                 }) {
                 Text("Run Preflight")
             }
@@ -253,6 +413,20 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     checkEnvironmentIndexes.add(selectedEnvironmentIndex.value)
                     checkResults.add("Not Run")
                     checkReasons.add("")
+                    val editor = sharedPreferences.edit()
+
+                    editor.putInt("check_count", checkNames.size)
+
+                    for (i in checkNames.indices) {
+                        editor.putString("check_name_$i", checkNames[i])
+                        editor.putString("check_type_$i", checkTypes[i])
+                        editor.putString("check_url_$i", checkUrls[i])
+                        editor.putInt("check_environment_$i", checkEnvironmentIndexes[i])
+                        editor.putString("check_result_$i", checkResults[i])
+                        editor.putString("check_reason_$i", checkReasons[i])
+                    }
+
+                    editor.apply()
 
                     checkName.value = ""
                     checkType.value = ""
@@ -290,10 +464,23 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 onClick = {
                     environmentNames.add(environmentName.value)
                     environmentUrls.add(baseUrl.value)
+
+                    val editor = sharedPreferences.edit()
+
+                    editor.putInt("environment_count", environmentNames.size)
+
+                    for (i in environmentNames.indices) {
+                        editor.putString("environment_name_$i", environmentNames[i])
+                        editor.putString("environment_url_$i", environmentUrls[i])
+                    }
+
+                    editor.apply()
+
                     environmentName.value = ""
                     baseUrl.value = ""
                     showAddForm.value = false
-                }) {
+                }
+                ) {
                 Text("Save")
             }
             Button(
