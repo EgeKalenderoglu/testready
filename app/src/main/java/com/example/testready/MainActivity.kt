@@ -50,7 +50,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
     val showAddCheckForm = remember { mutableStateOf(false) }
     val checkName = remember { mutableStateOf("") }
     val checkType = remember { mutableStateOf("") }
-    val checkUrl = remember { mutableStateOf("")}
+    val checkUrl = remember { mutableStateOf("") }
 
     val checkNames = remember {
         mutableStateListOf<String>()
@@ -69,6 +69,10 @@ fun MainScreen(modifier: Modifier = Modifier) {
     }
 
     val checkUrls = remember {
+        mutableStateListOf<String>()
+    }
+
+    val checkReasons = remember {
         mutableStateListOf<String>()
     }
 
@@ -112,7 +116,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 if (checkEnvironmentIndexes[i] == selectedEnvironmentIndex.value) {
                     hasChecks = true
 
-                    if (checkResults[i] != "Passed"){
+                    if (checkResults[i] != "Passed") {
                         allPassed = false
                     }
                 }
@@ -120,9 +124,9 @@ fun MainScreen(modifier: Modifier = Modifier) {
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            if (hasChecks == false){
+            if (hasChecks == false) {
                 Text("Overall Status: No Checks")
-            } else if (allPassed){
+            } else if (allPassed) {
                 Text("Overall Status: Ready to Test")
             } else {
                 Text("Overall Status: Not Ready to Test")
@@ -138,15 +142,26 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     Text(checkTypes[i])
                     Text(checkUrls[i])
                     Text("Status: ${checkResults[i]}")
+                    if (checkResults[i] == "Failed") {
+                        Text("Reason: ${checkReasons[i]}")
+                    }
                     Spacer(modifier = Modifier.height(10.dp))
                 }
             }
-
             Button(
                 onClick = {
-                    for (i in checkNames.indices){
-                        if (checkEnvironmentIndexes[i] == selectedEnvironmentIndex.value){
-                            checkResults[i] = "Passed"
+                    for (i in checkNames.indices) {
+                        if (checkEnvironmentIndexes[i] == selectedEnvironmentIndex.value) {
+
+                            if (checkUrls[i].startsWith("http://") ||
+                                checkUrls[i].startsWith("https://")
+                            ) {
+                                checkResults[i] = "Passed"
+                                checkReasons[i] = ""
+                            } else {
+                                checkResults[i] = "Failed"
+                                checkReasons[i] = "Invalid URL"
+                            }
                         }
                     }
                 }
@@ -203,6 +218,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     checkUrls.add(checkUrl.value)
                     checkEnvironmentIndexes.add(selectedEnvironmentIndex.value)
                     checkResults.add("Not Run")
+                    checkReasons.add("")
 
                     checkName.value = ""
                     checkType.value = ""
