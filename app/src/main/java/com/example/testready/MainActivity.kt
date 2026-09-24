@@ -263,6 +263,30 @@ fun MainScreen(modifier: Modifier = Modifier) {
                                 environmentUrls[j]
                             )
                         }
+                        editor.putInt("check_count", checkNames.size)
+
+                        for (j in checkNames.indices) {
+                            editor.putString("check_name_$j", checkNames[j])
+                            editor.putString("check_type_$j", checkTypes[j])
+                            editor.putString("check_url_$j", checkUrls[j])
+                            editor.putInt("check_environment_$j", checkEnvironmentIndexes[j])
+                            editor.putString("check_result_$j", checkResults[j])
+                            editor.putString("check_reason_$j", checkReasons[j])
+                        }
+
+                        editor.putInt("history_count", historyResults.size)
+
+                        for (j in historyResults.indices) {
+                            editor.putInt(
+                                "history_environment_$j",
+                                historyEnvironmentIndexes[j]
+                            )
+
+                            editor.putString(
+                                "history_result_$j",
+                                historyResults[j]
+                            )
+                        }
 
                         editor.apply()
                     }
