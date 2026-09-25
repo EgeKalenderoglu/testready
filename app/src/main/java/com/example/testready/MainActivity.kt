@@ -28,6 +28,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,7 +56,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
     val environmentName = remember { mutableStateOf("") }
     val baseUrl = remember { mutableStateOf("") }
     val selectedEnvironmentIndex = remember { mutableStateOf(-1) }
-
+    
     val environmentNames = remember {
         val names = mutableStateListOf<String>()
         val count = sharedPreferences.getInt("environment_count", 0)
@@ -196,7 +198,9 @@ fun MainScreen(modifier: Modifier = Modifier) {
         results
     }
     Column(
-        modifier = modifier.padding(20.dp)
+        modifier = modifier
+            .padding(20.dp)
+            .verticalScroll(rememberScrollState())
     ) {
         if (showAddForm.value == false && selectedEnvironmentIndex.value == -1) {
 
@@ -376,11 +380,25 @@ fun MainScreen(modifier: Modifier = Modifier) {
             }
         } else if (selectedEnvironmentIndex.value != -1 && showAddCheckForm.value == false) {
 
-            Text("TestReady")
-            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                text = "TestReady",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
 
-            Text(environmentNames[selectedEnvironmentIndex.value])
-            Text(environmentUrls[selectedEnvironmentIndex.value])
+            Spacer(modifier = Modifier.height(25.dp))
+
+            Text(
+                text = environmentNames[selectedEnvironmentIndex.value],
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = environmentUrls[selectedEnvironmentIndex.value],
+                style = MaterialTheme.typography.bodyMedium
+            )
+
             var hasChecks = false
             var allPassed = true
 
@@ -394,42 +412,96 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            if (hasChecks == false) {
-                Text("Overall Status: No Checks")
-            } else if (allPassed) {
-                Text("Overall Status: Ready to Test")
-            } else {
-                Text("Overall Status: Not Ready to Test")
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+
+                    Text(
+                        text = "Overall Status",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(5.dp))
+
+                    if (hasChecks == false) {
+                        Text("No Checks")
+                    } else if (allPassed) {
+                        Text("Ready to Test")
+                    } else {
+                        Text("Not Ready to Test")
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
-            Text("Checks")
+            Spacer(modifier = Modifier.height(25.dp))
+
+            Text(
+                text = "Checks",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+
             Spacer(modifier = Modifier.height(10.dp))
 
             for (i in checkNames.indices) {
                 if (checkEnvironmentIndexes[i] == selectedEnvironmentIndex.value) {
-                    Text(checkNames[i])
-                    Text(checkTypes[i])
-                    Text(checkUrls[i])
-                    Text("Status: ${checkResults[i]}")
-                    if (checkResults[i] == "Failed") {
-                        Text("Reason: ${checkReasons[i]}")
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+
+                            Text(
+                                text = checkNames[i],
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Spacer(modifier = Modifier.height(5.dp))
+
+                            Text(checkTypes[i])
+                            Text(checkUrls[i])
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = "Status: ${checkResults[i]}",
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            if (checkResults[i] == "Failed") {
+                                Text("Reason: ${checkReasons[i]}")
+                            }
+                        }
                     }
+
                     Spacer(modifier = Modifier.height(10.dp))
                 }
             }
+
             Button(
+                modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     var foundCheck = false
                     var runPassed = true
+
                     for (i in checkNames.indices) {
                         if (checkEnvironmentIndexes[i] == selectedEnvironmentIndex.value) {
 
                             foundCheck = true
 
-                            if (checkUrls[i].startsWith("http://") || checkUrls[i].startsWith("https://")) {
+                            if (
+                                checkUrls[i].startsWith("http://") ||
+                                checkUrls[i].startsWith("https://")
+                            ) {
                                 checkResults[i] = "Passed"
                                 checkReasons[i] = ""
                             } else {
@@ -439,6 +511,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                             }
                         }
                     }
+
                     if (foundCheck) {
                         historyEnvironmentIndexes.add(selectedEnvironmentIndex.value)
 
@@ -448,14 +521,25 @@ fun MainScreen(modifier: Modifier = Modifier) {
                             historyResults.add("Not Ready to Test")
                         }
                     }
+
                     val editor = sharedPreferences.edit()
 
                     for (i in checkNames.indices) {
-                        editor.putString("check_result_$i", checkResults[i])
-                        editor.putString("check_reason_$i", checkReasons[i])
+                        editor.putString(
+                            "check_result_$i",
+                            checkResults[i]
+                        )
+
+                        editor.putString(
+                            "check_reason_$i",
+                            checkReasons[i]
+                        )
                     }
 
-                    editor.putInt("history_count", historyResults.size)
+                    editor.putInt(
+                        "history_count",
+                        historyResults.size
+                    )
 
                     for (i in historyResults.indices) {
                         editor.putInt(
@@ -470,41 +554,67 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     }
 
                     editor.apply()
-                }) {
+                }
+            ) {
                 Text("Run Preflight")
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
-            Text("Preflight History")
+            Spacer(modifier = Modifier.height(25.dp))
+
+            Text(
+                text = "Preflight History",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+
             Spacer(modifier = Modifier.height(10.dp))
 
             var foundHistory = false
 
             for (i in historyResults.indices) {
                 if (historyEnvironmentIndexes[i] == selectedEnvironmentIndex.value) {
+
                     foundHistory = true
-                    Text(historyResults[i])
-                    Spacer(modifier = Modifier.height(5.dp))
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = historyResults[i],
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
+
             if (foundHistory == false) {
                 Text("No previous runs")
             }
+
             Spacer(modifier = Modifier.height(20.dp))
 
-            Button(
-                onClick = {
-                    showAddCheckForm.value = true
-                }) {
-                Text("Add Check")
-            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
 
+                Button(
+                    onClick = {
+                        showAddCheckForm.value = true
+                    }
+                ) {
+                    Text("+ Add Check")
+                }
 
-            Button(
-                onClick = {
-                    selectedEnvironmentIndex.value = -1
-                }) {
-                Text("Back")
+                OutlinedButton(
+                    onClick = {
+                        selectedEnvironmentIndex.value = -1
+                    }
+                ) {
+                    Text("Back")
+                }
             }
         } else if (showAddCheckForm.value) {
             Text("Add Check")
