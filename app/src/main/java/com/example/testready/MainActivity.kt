@@ -56,7 +56,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
     val environmentName = remember { mutableStateOf("") }
     val baseUrl = remember { mutableStateOf("") }
     val selectedEnvironmentIndex = remember { mutableStateOf(-1) }
-    
+    val environmentFormError = remember { mutableStateOf(false) }
     val environmentNames = remember {
         val names = mutableStateListOf<String>()
         val count = sharedPreferences.getInt("environment_count", 0)
@@ -94,7 +94,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
     val checkName = remember { mutableStateOf("") }
     val checkType = remember { mutableStateOf("") }
     val checkUrl = remember { mutableStateOf("") }
-
+    val checkFormError = remember { mutableStateOf(false) }
     val checkNames = remember {
         val names = mutableStateListOf<String>()
         val count = sharedPreferences.getInt("check_count", 0)
@@ -617,115 +617,251 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 }
             }
         } else if (showAddCheckForm.value) {
-            Text("Add Check")
-            Spacer(modifier = Modifier.height(20.dp))
-            Text("Check Name")
+
+            Text(
+                text = "Add Check",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(25.dp))
+
+            Text(
+                text = "Check Name",
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(5.dp))
+
             OutlinedTextField(
-                value = checkName.value, onValueChange = {
+                modifier = Modifier.fillMaxWidth(),
+                value = checkName.value,
+                onValueChange = {
                     checkName.value = it
-                })
-            Spacer(modifier = Modifier.height(10.dp))
-            Text("Check Type")
+                    checkFormError.value = false
+                }
+            )
+
+            Spacer(modifier = Modifier.height(15.dp))
+
+            Text(
+                text = "Check Type",
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(5.dp))
+
             OutlinedTextField(
-                value = checkType.value, onValueChange = {
+                modifier = Modifier.fillMaxWidth(),
+                value = checkType.value,
+                onValueChange = {
                     checkType.value = it
-                })
+                    checkFormError.value = false
+                }
+            )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(15.dp))
 
-            Text("Check URL")
+            Text(
+                text = "Check URL",
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(5.dp))
 
             OutlinedTextField(
-                value = checkUrl.value, onValueChange = {
+                modifier = Modifier.fillMaxWidth(),
+                value = checkUrl.value,
+                onValueChange = {
                     checkUrl.value = it
-                })
+                    checkFormError.value = false
+                }
+            )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            if (checkFormError.value) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Text("Please enter a check name, type, and URL.")
+            }
+
+            Spacer(modifier = Modifier.height(25.dp))
 
             Button(
+                modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    checkNames.add(checkName.value)
-                    checkTypes.add(checkType.value)
-                    checkUrls.add(checkUrl.value)
-                    checkEnvironmentIndexes.add(selectedEnvironmentIndex.value)
-                    checkResults.add("Not Run")
-                    checkReasons.add("")
-                    val editor = sharedPreferences.edit()
 
-                    editor.putInt("check_count", checkNames.size)
+                    if (
+                        checkName.value.isBlank() ||
+                        checkType.value.isBlank() ||
+                        checkUrl.value.isBlank()
+                    ) {
+                        checkFormError.value = true
+                    } else {
 
-                    for (i in checkNames.indices) {
-                        editor.putString("check_name_$i", checkNames[i])
-                        editor.putString("check_type_$i", checkTypes[i])
-                        editor.putString("check_url_$i", checkUrls[i])
-                        editor.putInt("check_environment_$i", checkEnvironmentIndexes[i])
-                        editor.putString("check_result_$i", checkResults[i])
-                        editor.putString("check_reason_$i", checkReasons[i])
+                        checkNames.add(checkName.value)
+                        checkTypes.add(checkType.value)
+                        checkUrls.add(checkUrl.value)
+                        checkEnvironmentIndexes.add(selectedEnvironmentIndex.value)
+                        checkResults.add("Not Run")
+                        checkReasons.add("")
+
+                        val editor = sharedPreferences.edit()
+
+                        editor.putInt("check_count", checkNames.size)
+
+                        for (i in checkNames.indices) {
+                            editor.putString("check_name_$i", checkNames[i])
+                            editor.putString("check_type_$i", checkTypes[i])
+                            editor.putString("check_url_$i", checkUrls[i])
+                            editor.putInt(
+                                "check_environment_$i",
+                                checkEnvironmentIndexes[i]
+                            )
+                            editor.putString(
+                                "check_result_$i",
+                                checkResults[i]
+                            )
+                            editor.putString(
+                                "check_reason_$i",
+                                checkReasons[i]
+                            )
+                        }
+
+                        editor.apply()
+
+                        checkName.value = ""
+                        checkType.value = ""
+                        checkUrl.value = ""
+                        checkFormError.value = false
+                        showAddCheckForm.value = false
                     }
-
-                    editor.apply()
-
-                    checkName.value = ""
-                    checkType.value = ""
-                    checkUrl.value = ""
-                    showAddCheckForm.value = false
-                }) {
+                }
+            ) {
                 Text("Save Check")
             }
 
-            Button(
+            Spacer(modifier = Modifier.height(10.dp))
+
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
                 onClick = {
+                    checkName.value = ""
+                    checkType.value = ""
+                    checkUrl.value = ""
+                    checkFormError.value = false
                     showAddCheckForm.value = false
-                }) {
+                }
+            ) {
                 Text("Cancel")
             }
+
         } else {
-            Text("Add Environment")
-            Spacer(modifier = Modifier.height(20.dp))
-            Text("Environment Name")
+
+            Text(
+                text = "Add Environment",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(25.dp))
+
+            Text(
+                text = "Environment Name",
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(5.dp))
 
             OutlinedTextField(
-                value = environmentName.value, onValueChange = {
+                modifier = Modifier.fillMaxWidth(),
+                value = environmentName.value,
+                onValueChange = {
                     environmentName.value = it
-                })
-            Spacer(modifier = Modifier.height(10.dp))
-            Text("Base URL")
+                    environmentFormError.value = false
+                }
+            )
+
+            Spacer(modifier = Modifier.height(15.dp))
+
+            Text(
+                text = "Base URL",
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(5.dp))
 
             OutlinedTextField(
-                value = baseUrl.value, onValueChange = {
+                modifier = Modifier.fillMaxWidth(),
+                value = baseUrl.value,
+                onValueChange = {
                     baseUrl.value = it
-                })
-            Spacer(modifier = Modifier.height(20.dp))
+                    environmentFormError.value = false
+                }
+            )
+
+            if (environmentFormError.value) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Text("Please enter both an environment name and base URL.")
+            }
+
+            Spacer(modifier = Modifier.height(25.dp))
 
             Button(
+                modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    environmentNames.add(environmentName.value)
-                    environmentUrls.add(baseUrl.value)
 
-                    val editor = sharedPreferences.edit()
+                    if (
+                        environmentName.value.isBlank() ||
+                        baseUrl.value.isBlank()
+                    ) {
+                        environmentFormError.value = true
+                    } else {
 
-                    editor.putInt("environment_count", environmentNames.size)
+                        environmentNames.add(environmentName.value)
+                        environmentUrls.add(baseUrl.value)
 
-                    for (i in environmentNames.indices) {
-                        editor.putString("environment_name_$i", environmentNames[i])
-                        editor.putString("environment_url_$i", environmentUrls[i])
+                        val editor = sharedPreferences.edit()
+
+                        editor.putInt(
+                            "environment_count",
+                            environmentNames.size
+                        )
+
+                        for (i in environmentNames.indices) {
+                            editor.putString(
+                                "environment_name_$i",
+                                environmentNames[i]
+                            )
+
+                            editor.putString(
+                                "environment_url_$i",
+                                environmentUrls[i]
+                            )
+                        }
+
+                        editor.apply()
+
+                        environmentName.value = ""
+                        baseUrl.value = ""
+                        environmentFormError.value = false
+                        showAddForm.value = false
                     }
+                }
+            ) {
+                Text("Save Environment")
+            }
 
-                    editor.apply()
+            Spacer(modifier = Modifier.height(10.dp))
 
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
                     environmentName.value = ""
                     baseUrl.value = ""
+                    environmentFormError.value = false
                     showAddForm.value = false
                 }
             ) {
-                Text("Save")
-            }
-            Button(
-                onClick = {
-                    showAddForm.value = false
-                }) {
                 Text("Cancel")
-
             }
         }
     }
