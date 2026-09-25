@@ -21,6 +21,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateListOf
 import android.content.Context
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.text.font.FontWeight
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -191,117 +199,180 @@ fun MainScreen(modifier: Modifier = Modifier) {
         modifier = modifier.padding(20.dp)
     ) {
         if (showAddForm.value == false && selectedEnvironmentIndex.value == -1) {
-            Text("TestReady")
-            Spacer(modifier = Modifier.height(20.dp))
-            Text("Test Environments")
-            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = "TestReady",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "QA Environment Manager",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Text(
+                text = "Test Environments",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(15.dp))
+
             for (i in environmentNames.indices) {
-                Text(environmentNames[i])
-                Text(environmentUrls[i])
 
-                Button(
-                    onClick = {
-                        selectedEnvironmentIndex.value = i
-                    }
+                Card(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Open")
-                }
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
 
-                Button(
-                    onClick = {
-
-                        for (j in checkEnvironmentIndexes.lastIndex downTo 0) {
-                            if (checkEnvironmentIndexes[j] == i) {
-                                checkNames.removeAt(j)
-                                checkTypes.removeAt(j)
-                                checkUrls.removeAt(j)
-                                checkResults.removeAt(j)
-                                checkReasons.removeAt(j)
-                                checkEnvironmentIndexes.removeAt(j)
-                            }
-                        }
-
-                        for (j in checkEnvironmentIndexes.indices) {
-                            if (checkEnvironmentIndexes[j] > i) {
-                                checkEnvironmentIndexes[j] =
-                                    checkEnvironmentIndexes[j] - 1
-                            }
-                        }
-
-                        for (j in historyEnvironmentIndexes.lastIndex downTo 0) {
-                            if (historyEnvironmentIndexes[j] == i) {
-                                historyEnvironmentIndexes.removeAt(j)
-                                historyResults.removeAt(j)
-                            }
-                        }
-
-                        for (j in historyEnvironmentIndexes.indices) {
-                            if (historyEnvironmentIndexes[j] > i) {
-                                historyEnvironmentIndexes[j] =
-                                    historyEnvironmentIndexes[j] - 1
-                            }
-                        }
-
-                        environmentNames.removeAt(i)
-                        environmentUrls.removeAt(i)
-
-                        val editor = sharedPreferences.edit()
-
-                        editor.putInt(
-                            "environment_count",
-                            environmentNames.size
+                        Text(
+                            text = environmentNames[i],
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
                         )
 
-                        for (j in environmentNames.indices) {
-                            editor.putString(
-                                "environment_name_$j",
-                                environmentNames[j]
-                            )
+                        Spacer(modifier = Modifier.height(5.dp))
 
-                            editor.putString(
-                                "environment_url_$j",
-                                environmentUrls[j]
-                            )
+                        Text(
+                            text = environmentUrls[i],
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+
+                        Spacer(modifier = Modifier.height(15.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+
+                            Button(
+                                onClick = {
+                                    selectedEnvironmentIndex.value = i
+                                }
+                            ) {
+                                Text("Open")
+                            }
+
+                            OutlinedButton(
+                                onClick = {
+
+                                    for (j in checkEnvironmentIndexes.lastIndex downTo 0) {
+                                        if (checkEnvironmentIndexes[j] == i) {
+                                            checkNames.removeAt(j)
+                                            checkTypes.removeAt(j)
+                                            checkUrls.removeAt(j)
+                                            checkResults.removeAt(j)
+                                            checkReasons.removeAt(j)
+                                            checkEnvironmentIndexes.removeAt(j)
+                                        }
+                                    }
+
+                                    for (j in checkEnvironmentIndexes.indices) {
+                                        if (checkEnvironmentIndexes[j] > i) {
+                                            checkEnvironmentIndexes[j] =
+                                                checkEnvironmentIndexes[j] - 1
+                                        }
+                                    }
+
+                                    for (j in historyEnvironmentIndexes.lastIndex downTo 0) {
+                                        if (historyEnvironmentIndexes[j] == i) {
+                                            historyEnvironmentIndexes.removeAt(j)
+                                            historyResults.removeAt(j)
+                                        }
+                                    }
+
+                                    for (j in historyEnvironmentIndexes.indices) {
+                                        if (historyEnvironmentIndexes[j] > i) {
+                                            historyEnvironmentIndexes[j] =
+                                                historyEnvironmentIndexes[j] - 1
+                                        }
+                                    }
+
+                                    environmentNames.removeAt(i)
+                                    environmentUrls.removeAt(i)
+
+                                    val editor = sharedPreferences.edit()
+
+                                    editor.putInt(
+                                        "environment_count",
+                                        environmentNames.size
+                                    )
+
+                                    for (j in environmentNames.indices) {
+                                        editor.putString(
+                                            "environment_name_$j",
+                                            environmentNames[j]
+                                        )
+
+                                        editor.putString(
+                                            "environment_url_$j",
+                                            environmentUrls[j]
+                                        )
+                                    }
+
+                                    editor.putInt("check_count", checkNames.size)
+
+                                    for (j in checkNames.indices) {
+                                        editor.putString("check_name_$j", checkNames[j])
+                                        editor.putString("check_type_$j", checkTypes[j])
+                                        editor.putString("check_url_$j", checkUrls[j])
+                                        editor.putInt(
+                                            "check_environment_$j",
+                                            checkEnvironmentIndexes[j]
+                                        )
+                                        editor.putString(
+                                            "check_result_$j",
+                                            checkResults[j]
+                                        )
+                                        editor.putString(
+                                            "check_reason_$j",
+                                            checkReasons[j]
+                                        )
+                                    }
+
+                                    editor.putInt(
+                                        "history_count",
+                                        historyResults.size
+                                    )
+
+                                    for (j in historyResults.indices) {
+                                        editor.putInt(
+                                            "history_environment_$j",
+                                            historyEnvironmentIndexes[j]
+                                        )
+
+                                        editor.putString(
+                                            "history_result_$j",
+                                            historyResults[j]
+                                        )
+                                    }
+
+                                    editor.apply()
+                                }
+                            ) {
+                                Text("Delete")
+                            }
                         }
-                        editor.putInt("check_count", checkNames.size)
-
-                        for (j in checkNames.indices) {
-                            editor.putString("check_name_$j", checkNames[j])
-                            editor.putString("check_type_$j", checkTypes[j])
-                            editor.putString("check_url_$j", checkUrls[j])
-                            editor.putInt("check_environment_$j", checkEnvironmentIndexes[j])
-                            editor.putString("check_result_$j", checkResults[j])
-                            editor.putString("check_reason_$j", checkReasons[j])
-                        }
-
-                        editor.putInt("history_count", historyResults.size)
-
-                        for (j in historyResults.indices) {
-                            editor.putInt(
-                                "history_environment_$j",
-                                historyEnvironmentIndexes[j]
-                            )
-
-                            editor.putString(
-                                "history_result_$j",
-                                historyResults[j]
-                            )
-                        }
-
-                        editor.apply()
                     }
-                ) {
-                    Text("Delete")
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(15.dp))
             }
-            Spacer(modifier = Modifier.height(20.dp))
+
+            Spacer(modifier = Modifier.height(10.dp))
+
             Button(
+                modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     showAddForm.value = true
-                }) {
-                Text("Add Environment")
+                }
+            ) {
+                Text("+ Add Environment")
             }
         } else if (selectedEnvironmentIndex.value != -1 && showAddCheckForm.value == false) {
 
@@ -536,7 +607,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     baseUrl.value = ""
                     showAddForm.value = false
                 }
-                ) {
+            ) {
                 Text("Save")
             }
             Button(
