@@ -30,6 +30,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import java.net.HttpURLConnection
+import java.net.URL
+import android.os.Handler
+import android.os.Looper
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -490,70 +494,109 @@ fun MainScreen(modifier: Modifier = Modifier) {
             Button(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    var foundCheck = false
-                    var runPassed = true
+
+                    val environmentIndex = selectedEnvironmentIndex.value
+                    val checkIndexes = mutableListOf<Int>()
 
                     for (i in checkNames.indices) {
-                        if (checkEnvironmentIndexes[i] == selectedEnvironmentIndex.value) {
+                        if (checkEnvironmentIndexes[i] == environmentIndex) {
+                            checkIndexes.add(i)
+                        }
+                    }
 
-                            foundCheck = true
+                    if (checkIndexes.isNotEmpty()) {
 
-                            if (
-                                checkUrls[i].startsWith("http://") ||
-                                checkUrls[i].startsWith("https://")
-                            ) {
-                                checkResults[i] = "Passed"
-                                checkReasons[i] = ""
-                            } else {
-                                checkResults[i] = "Failed"
-                                checkReasons[i] = "Invalid URL"
-                                runPassed = false
+                        Thread {
+
+                            val newResults = mutableListOf<String>()
+                            val newReasons = mutableListOf<String>()
+                            var runPassed = true
+
+                            for (index in checkIndexes) {
+
+                                try {
+                                    val url = URL(checkUrls[index])
+                                    val connection =
+                                        url.openConnection() as HttpURLConnection
+
+                                    connection.requestMethod = "GET"
+                                    connection.connectTimeout = 5000
+                                    connection.readTimeout = 5000
+                                    connection.instanceFollowRedirects = true
+
+                                    val responseCode = connection.responseCode
+
+                                    if (responseCode in 200..399) {
+                                        newResults.add("Passed")
+                                        newReasons.add("")
+                                    } else {
+                                        newResults.add("Failed")
+                                        newReasons.add("HTTP $responseCode")
+                                        runPassed = false
+                                    }
+
+                                    connection.disconnect()
+
+                                } catch (e: Exception) {
+                                    newResults.add("Failed")
+                                    newReasons.add("Connection failed")
+                                    runPassed = false
+                                }
                             }
-                        }
+
+                            Handler(Looper.getMainLooper()).post {
+
+                                for (j in checkIndexes.indices) {
+                                    val index = checkIndexes[j]
+
+                                    checkResults[index] = newResults[j]
+                                    checkReasons[index] = newReasons[j]
+                                }
+
+                                historyEnvironmentIndexes.add(environmentIndex)
+
+                                if (runPassed) {
+                                    historyResults.add("Ready to Test")
+                                } else {
+                                    historyResults.add("Not Ready to Test")
+                                }
+
+                                val editor = sharedPreferences.edit()
+
+                                for (i in checkNames.indices) {
+                                    editor.putString(
+                                        "check_result_$i",
+                                        checkResults[i]
+                                    )
+
+                                    editor.putString(
+                                        "check_reason_$i",
+                                        checkReasons[i]
+                                    )
+                                }
+
+                                editor.putInt(
+                                    "history_count",
+                                    historyResults.size
+                                )
+
+                                for (i in historyResults.indices) {
+                                    editor.putInt(
+                                        "history_environment_$i",
+                                        historyEnvironmentIndexes[i]
+                                    )
+
+                                    editor.putString(
+                                        "history_result_$i",
+                                        historyResults[i]
+                                    )
+                                }
+
+                                editor.apply()
+                            }
+
+                        }.start()
                     }
-
-                    if (foundCheck) {
-                        historyEnvironmentIndexes.add(selectedEnvironmentIndex.value)
-
-                        if (runPassed) {
-                            historyResults.add("Ready to Test")
-                        } else {
-                            historyResults.add("Not Ready to Test")
-                        }
-                    }
-
-                    val editor = sharedPreferences.edit()
-
-                    for (i in checkNames.indices) {
-                        editor.putString(
-                            "check_result_$i",
-                            checkResults[i]
-                        )
-
-                        editor.putString(
-                            "check_reason_$i",
-                            checkReasons[i]
-                        )
-                    }
-
-                    editor.putInt(
-                        "history_count",
-                        historyResults.size
-                    )
-
-                    for (i in historyResults.indices) {
-                        editor.putInt(
-                            "history_environment_$i",
-                            historyEnvironmentIndexes[i]
-                        )
-
-                        editor.putString(
-                            "history_result_$i",
-                            historyResults[i]
-                        )
-                    }
-
-                    editor.apply()
                 }
             ) {
                 Text("Run Preflight")
