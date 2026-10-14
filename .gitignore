@@ -14,3 +14,7 @@
 .cxx
 local.properties
 /.idea/
+
+# Python backend
+backend/.venv/
+backend/__pycache__/
