@@ -34,10 +34,17 @@ import java.net.HttpURLConnection
 import java.net.URL
 import android.os.Handler
 import android.os.Looper
+import android.os.Build
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT >= 37) {
+            requestPermissions(
+                arrayOf("android.permission.ACCESS_LOCAL_NETWORK"),
+                100
+            )
+        }
         enableEdgeToEdge()
 
         setContent {
@@ -52,6 +59,10 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(modifier: Modifier = Modifier) {
 
     val context = LocalContext.current
+
+    val backendStatus = remember {
+        mutableStateOf("Not Checked")
+    }
 
     val sharedPreferences = remember {
         context.getSharedPreferences("testready_data", Context.MODE_PRIVATE)
@@ -218,6 +229,49 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 text = "QA Environment Manager",
                 style = MaterialTheme.typography.bodyMedium
             )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = "Backend: ${backendStatus.value}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedButton(
+                onClick = {
+                    backendStatus.value = "Checking..."
+
+                    Thread {
+                        try {
+                            val url = URL("http://10.0.2.2:8000/health")
+                            val connection = url.openConnection() as HttpURLConnection
+
+                            connection.requestMethod = "GET"
+                            connection.connectTimeout = 3000
+                            connection.readTimeout = 3000
+
+                            val responseCode = connection.responseCode
+                            connection.disconnect()
+
+                            Handler(Looper.getMainLooper()).post {
+                                if (responseCode == 200) {
+                                    backendStatus.value = "Connected"
+                                } else {
+                                    backendStatus.value = "Unavailable"
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Handler(Looper.getMainLooper()).post {
+                                backendStatus.value = "Unavailable"
+                            }
+                        }
+                    }.start()
+                }
+            ) {
+                Text("Check Backend")
+            }
 
             Spacer(modifier = Modifier.height(30.dp))
 
